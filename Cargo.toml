@@ -4,6 +4,7 @@ version = "0.0.0"
 authors = ["Alex Kotov <kotovalexarian@gmail.com>"]
 edition = "2018"
 description = "CSRF (Cross-Site Request Forgery) protection for Rocket web framework"
+readme = true
 homepage = "https://github.com/kotovalexarian/rocket_csrf"
 repository = "https://github.com/kotovalexarian/rocket_csrf.git"
 license = "MIT"
