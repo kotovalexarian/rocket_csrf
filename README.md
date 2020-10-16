@@ -13,7 +13,7 @@ instance:
 fn main() {
     rocket::ignite()
         .attach(rocket_csrf::Fairing::new())
-        .mount("/", routes![/* your routes */)
+        .mount("/", routes![index, create])
         .launch();
 }
 ```
