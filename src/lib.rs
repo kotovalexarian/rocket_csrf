@@ -13,7 +13,7 @@ const RAW_TOKEN_LENGTH: usize = 32;
 
 pub struct Fairing;
 
-pub struct Guard(pub String);
+pub struct CsrfToken(pub String);
 
 pub struct VerificationFailure;
 
@@ -23,7 +23,7 @@ impl Fairing {
     }
 }
 
-impl Guard {
+impl CsrfToken {
     pub fn verify(&self, form_authenticity_token: &String)
         -> Result<(), VerificationFailure>
     {
@@ -56,7 +56,7 @@ impl RocketFairing for Fairing {
     }
 }
 
-impl<'a, 'r> FromRequest<'a, 'r> for Guard {
+impl<'a, 'r> FromRequest<'a, 'r> for CsrfToken {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {

@@ -50,14 +50,15 @@ it in forms) or verify it (e.g. to validate form):
 use rocket::response::Redirect;
 use rocket::request::Form;
 use rocket_contrib::templates::Template;
+use rocket_csrf::CsrfToken;
 
 #[get("/comments/new")]
-fn new(csrf: rocket_csrf::Guard) -> Template {
+fn new(csrf: CsrfToken) -> Template {
     // your code
 }
 
 #[post("/comments", data = "<form>")]
-fn create(csrf: rocket_csrf::Guard, form: Form<Comment>) -> Redirect {
+fn create(csrf: CsrfToken, form: Form<Comment>) -> Redirect {
     // your code
 }
 ```
@@ -68,7 +69,7 @@ to use it in [templates](https://rocket.rs/v0.4/guide/responses/#templates):
 
 ```rust
 #[get("/comments/new")]
-fn new(csrf: rocket_csrf::Guard) -> Template {
+fn new(csrf: CsrfToken) -> Template {
     let csrf_token: String = csrf.0;
 
     // your code
@@ -101,7 +102,7 @@ authenticity token:
 
 ```rust
 #[post("/comments", data = "<form>")]
-fn create(csrf: rocket_csrf::Guard, form: Form<Comment>) -> Redirect {
+fn create(csrf: CsrfToken, form: Form<Comment>) -> Redirect {
     if let Err(_) = csrf.verify(&form.authenticity_token) {
         return Redirect::to(uri!(new));
     }

@@ -6,6 +6,7 @@
 use rocket::response::{Flash, Redirect};
 use rocket::request::{FlashMessage, Form};
 use rocket_contrib::templates::Template;
+use rocket_csrf::CsrfToken;
 
 #[derive(Serialize)]
 struct TemplateContext {
@@ -33,7 +34,7 @@ fn index() -> Redirect {
 }
 
 #[get("/comments/new")]
-fn new(csrf: rocket_csrf::Guard, flash: Option<FlashMessage>) -> Template {
+fn new(csrf: CsrfToken, flash: Option<FlashMessage>) -> Template {
     let template_context = TemplateContext {
         csrf_token: csrf.0,
         flash: flash.map(|msg| format!("{}! {}", msg.name(), msg.msg())),
@@ -43,7 +44,7 @@ fn new(csrf: rocket_csrf::Guard, flash: Option<FlashMessage>) -> Template {
 }
 
 #[post("/comments", data = "<form>")]
-fn create(csrf: rocket_csrf::Guard, form: Form<Comment>) -> Flash<Redirect> {
+fn create(csrf: CsrfToken, form: Form<Comment>) -> Flash<Redirect> {
     if let Err(_) = csrf.verify(&form.authenticity_token) {
         return Flash::error(
             Redirect::to(uri!(new)),
