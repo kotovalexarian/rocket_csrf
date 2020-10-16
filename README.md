@@ -4,6 +4,9 @@ rocket_csrf
 CSRF (Cross-Site Request Forgery) protection for [Rocket](https://rocket.rs)
 web framework.
 
+> **WARNING!**
+> The implementation is very simple for now and may not be ready for production.
+
 
 
 Table of contents
