@@ -1,7 +1,8 @@
 rocket_csrf
 ===========
 
-CSRF (Cross-Site Request Forgery) protection for Rocket web framework.
+CSRF (Cross-Site Request Forgery) protection for [Rocket](https://rocket.rs)
+web framework.
 
 Usage
 -----
