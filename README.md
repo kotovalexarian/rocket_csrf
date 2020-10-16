@@ -12,6 +12,7 @@ Table of contents
 * [Overview](#rocket_csrf)
 * [Table of contents](#table-of-contents)
 * [Usage](#usage)
+* [TODO](#todo)
 
 
 
@@ -93,3 +94,17 @@ fn create(csrf: rocket_csrf::Guard, form: Form<Comment>) -> Redirect {
     // your code
 }
 ```
+
+
+
+TODO
+----
+
+* [ ] Add fairing to verify all requests as an option.
+* [ ] Add [data guard](https://api.rocket.rs/v0.4/rocket/data/trait.FromData.html) to verify forms with a guard.
+* [ ] Add helpers to render form field.
+* [ ] Add helpers to add HTML meta tags for Ajax with `X-CSRF-Token` header.
+* [ ] Verify `X-CSRF-Token` header.
+* [ ] Use authenticity token encryption from [Ruby on Rails](https://github.com/rails/rails/blob/v6.0.3.4/actionpack/lib/action_controller/metal/request_forgery_protection.rb).
+* [ ] Allow to configure CSRF protection (CSRF token byte length, cookie name, etc.).
+* [ ] Set cookie to expire with session.
