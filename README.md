@@ -7,6 +7,9 @@ web framework.
 > **WARNING!**
 > The implementation is very simple for now and may not be ready for production.
 
+Discussion about CSRF protection in Rocket is
+[here](https://github.com/SergioBenitez/Rocket/issues/14).
+
 
 
 Table of contents
