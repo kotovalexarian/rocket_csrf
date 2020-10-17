@@ -13,6 +13,6 @@ categories = ["web-programming"]
 publish = true
 
 [dependencies]
-base64 = { version = "^0.13.0" }
-rand   = { version = "^0.7.3" }
-rocket = { version = "^0.4.5", features = ["private-cookies"] }
+base64 = { version = "0.13.0" }
+rand   = { version = "0.7.3" }
+rocket = { version = "0.4.5", features = ["private-cookies"] }
