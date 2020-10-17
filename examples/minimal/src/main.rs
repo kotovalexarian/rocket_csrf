@@ -10,7 +10,7 @@ use rocket_csrf::CsrfToken;
 
 #[derive(Serialize)]
 struct TemplateContext {
-    csrf_token: String,
+    authenticity_token: String,
     flash: Option<String>,
 }
 
@@ -34,9 +34,9 @@ fn index() -> Redirect {
 }
 
 #[get("/comments/new")]
-fn new(csrf: CsrfToken, flash: Option<FlashMessage>) -> Template {
+fn new(csrf_token: CsrfToken, flash: Option<FlashMessage>) -> Template {
     let template_context = TemplateContext {
-        csrf_token: csrf.0,
+        authenticity_token: csrf_token.0,
         flash: flash.map(|msg| format!("{}! {}", msg.name(), msg.msg())),
     };
 
@@ -44,8 +44,8 @@ fn new(csrf: CsrfToken, flash: Option<FlashMessage>) -> Template {
 }
 
 #[post("/comments", data = "<form>")]
-fn create(csrf: CsrfToken, form: Form<Comment>) -> Flash<Redirect> {
-    if let Err(_) = csrf.verify(&form.authenticity_token) {
+fn create(csrf_token: CsrfToken, form: Form<Comment>) -> Flash<Redirect> {
+    if let Err(_) = csrf_token.verify(&form.authenticity_token) {
         return Flash::error(
             Redirect::to(uri!(new)),
             "invalid authenticity token",

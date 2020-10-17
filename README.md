@@ -53,12 +53,12 @@ use rocket_contrib::templates::Template;
 use rocket_csrf::CsrfToken;
 
 #[get("/comments/new")]
-fn new(csrf: CsrfToken) -> Template {
+fn new(csrf_token: CsrfToken) -> Template {
     // your code
 }
 
 #[post("/comments", data = "<form>")]
-fn create(csrf: CsrfToken, form: Form<Comment>) -> Redirect {
+fn create(csrf_token: CsrfToken, form: Form<Comment>) -> Redirect {
     // your code
 }
 ```
@@ -69,8 +69,8 @@ to use it in [templates](https://rocket.rs/v0.4/guide/responses/#templates):
 
 ```rust
 #[get("/comments/new")]
-fn new(csrf: CsrfToken) -> Template {
-    let csrf_token: String = csrf.0;
+fn new(csrf_token: CsrfToken) -> Template {
+    let authenticity_token: String = csrf_token.0;
 
     // your code
 }
@@ -81,7 +81,7 @@ Add CSRF token to your HTML forms in
 
 ```html
 <form method="post" action="/comments">
-    <input type="hidden" name="authenticity_token" value="{{ csrf_token }}"/>
+    <input type="hidden" name="authenticity_token" value="{{ authenticity_token }}"/>
     <!-- your fields -->
 </form>
 ```
@@ -102,8 +102,8 @@ authenticity token:
 
 ```rust
 #[post("/comments", data = "<form>")]
-fn create(csrf: CsrfToken, form: Form<Comment>) -> Redirect {
-    if let Err(_) = csrf.verify(&form.authenticity_token) {
+fn create(csrf_token: CsrfToken, form: Form<Comment>) -> Redirect {
+    if let Err(_) = csrf_token.verify(&form.authenticity_token) {
         return Redirect::to(uri!(new));
     }
 
