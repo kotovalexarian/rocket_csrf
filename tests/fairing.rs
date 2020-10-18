@@ -7,15 +7,9 @@ fn client() -> rocket::local::Client {
 }
 
 fn rocket() -> rocket::Rocket {
-    rocket::custom(rocket_config())
+    rocket::ignite()
         .attach(rocket_csrf::Fairing::new())
         .mount("/", routes![index])
-}
-
-fn rocket_config() -> rocket::config::Config {
-    rocket::config::Config::build(
-        rocket::config::Environment::Development,
-    ).unwrap()
 }
 
 #[get("/")]
