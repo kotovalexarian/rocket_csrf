@@ -24,10 +24,10 @@ impl Fairing {
 }
 
 impl CsrfToken {
-    pub fn verify(&self, form_authenticity_token: &String)
+    pub fn verify(&self, form_authenticity_token: &str)
         -> Result<(), VerificationFailure>
     {
-        if self.0 == *form_authenticity_token {
+        if self.0 == form_authenticity_token {
             Ok(())
         }
         else {
