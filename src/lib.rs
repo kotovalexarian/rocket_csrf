@@ -43,7 +43,7 @@ impl CsrfToken {
 impl RocketFairing for Fairing {
     fn info(&self) -> Info {
         Info {
-            name: "CSRF (Cross-Site Request Forgery) protection",
+            name: "CSRF",
             kind: Kind::Request,
         }
     }
