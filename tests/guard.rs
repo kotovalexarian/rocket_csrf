@@ -18,7 +18,7 @@ fn rocket() -> rocket::Rocket {
 
 #[get("/")]
 fn index(csrf_token: CsrfToken) -> String {
-    csrf_token.0
+    csrf_token.authenticity_token().to_string()
 }
 
 #[test]

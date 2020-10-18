@@ -36,7 +36,7 @@ fn index() -> Redirect {
 #[get("/comments/new")]
 fn new(csrf_token: CsrfToken, flash: Option<FlashMessage>) -> Template {
     let template_context = TemplateContext {
-        authenticity_token: csrf_token.0,
+        authenticity_token: csrf_token.authenticity_token().to_string(),
         flash: flash.map(|msg| format!("{}! {}", msg.name(), msg.msg())),
     };
 

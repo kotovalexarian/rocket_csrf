@@ -13,7 +13,7 @@ const RAW_TOKEN_LENGTH: usize = 32;
 
 pub struct Fairing;
 
-pub struct CsrfToken(pub String);
+pub struct CsrfToken(String);
 
 pub struct VerificationFailure;
 
@@ -24,6 +24,10 @@ impl Fairing {
 }
 
 impl CsrfToken {
+    pub fn authenticity_token(&self) -> &str {
+        self.0.as_ref()
+    }
+
     pub fn verify(&self, form_authenticity_token: &str)
         -> Result<(), VerificationFailure>
     {

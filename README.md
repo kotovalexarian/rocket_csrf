@@ -73,7 +73,7 @@ to use it in [templates](https://rocket.rs/v0.4/guide/responses/#templates):
 ```rust
 #[get("/comments/new")]
 fn new(csrf_token: CsrfToken) -> Template {
-    let authenticity_token: String = csrf_token.0;
+    let authenticity_token: &str = csrf_token.authenticity_token();
 
     // your code
 }
