@@ -24,7 +24,7 @@ fn index() {
 
 #[test]
 fn add_csrf_token_to_cookies() {
-    client().get("/").dispatch().cookies().iter().find(|cookie| {
+    base64::decode(client().get("/").dispatch().cookies().iter().find(|cookie| {
         cookie.name() == "csrf_token"
-    }).unwrap();
+    }).unwrap().value()).unwrap();
 }
