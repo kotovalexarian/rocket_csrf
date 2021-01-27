@@ -5,6 +5,7 @@
 use rand::RngCore;
 use rocket::http::Cookie;
 use rocket_csrf::CsrfToken;
+use bcrypt::verify;
 
 fn client() -> rocket::local::Client {
     rocket::local::Client::new(rocket()).unwrap()
@@ -37,5 +38,5 @@ fn respond_with_valid_authenticity_token() {
         .into_string()
         .unwrap();
 
-    assert_eq!(body, encoded);
+    assert!(verify(&encoded, &body).unwrap());
 }
