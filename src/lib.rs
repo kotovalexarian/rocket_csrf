@@ -1,3 +1,4 @@
+use bcrypt::{hash, verify, DEFAULT_COST};
 use rand::{distributions::Standard, Rng};
 use rocket::{
     fairing::{Fairing as RocketFairing, Info, Kind},
@@ -5,7 +6,6 @@ use rocket::{
     request::{FromRequest, Outcome},
     Data, Request, Rocket, State,
 };
-use bcrypt::{hash, verify, DEFAULT_COST};
 use std::borrow::Cow;
 use time::Duration;
 
@@ -28,7 +28,7 @@ impl Default for CsrfConfig {
     fn default() -> Self {
         Self {
             /// Set to 6hour for default in Database Session stores.
-            lifespan: Duration::day(),
+            lifespan: Duration::days(1),
             cookie_name: "csrf_token".into(),
             cookie_len: 32,
         }
@@ -116,13 +116,22 @@ impl RocketFairing for Fairing {
             return;
         }
 
-        let values: Vec<u8> = rand::thread_rng().sample_iter(Standard).take(config.cookie_len).collect();
+        let values: Vec<u8> = rand::thread_rng()
+            .sample_iter(Standard)
+            .take(config.cookie_len)
+            .collect();
         let encoded = base64::encode(&values[..]);
 
-        request
-            .cookies()
-            .add_private(Cookie::new(config.cookie_name.clone(), encoded));
-        }
+        //This changed in the latest Rocket so it will be nicer when it is switched.
+        let mut now = time::now_utc();
+        now = now + config.lifespan;
+
+        request.cookies().add_private(
+            Cookie::build(config.cookie_name.clone(), encoded)
+                .expires(now)
+                .finish(),
+        );
+    }
 }
 
 impl<'a, 'r> FromRequest<'a, 'r> for CsrfToken {
