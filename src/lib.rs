@@ -49,6 +49,39 @@ impl Fairing {
             config: Default::default(),
         }
     }
+
+    /// Set CSRF lifetime (expiration time) for cookie.
+    ///
+    /// Call on the fairing before passing it to `rocket.attach()`
+    pub fn with_lifetime(mut self, time: Duration) -> Self {
+        self.config.lifespan = time;
+        self
+    }
+
+    /// Set CSRF Cookie Name.
+    ///
+    /// Call on the fairing before passing it to `rocket.attach()`
+    pub fn with_cookie_name(mut self, name: impl Into<Cow<'static, str>>) -> Self {
+        self.config.cookie_name = name.into();
+        self
+    }
+
+    /// Set CSRF Cookie length, keep this above or equal to 16 in size.
+    ///
+    /// Call on the fairing before passing it to `rocket.attach()`
+    pub fn with_cookie_len(mut self, length: usize) -> Self {
+        let length = std::cmp::max(length, 16);
+        self.config.cookie_len = length;
+        self
+    }
+
+    /// Set CSRF Config from CsrfConfig
+    ///
+    /// Call on the fairing before passing it to `rocket.attach()`
+    pub fn with_config(mut self, config: CsrfConfig) -> Self {
+        self.config = config;
+        self
+    }
 }
 
 impl CsrfToken {
