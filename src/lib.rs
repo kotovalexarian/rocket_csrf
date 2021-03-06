@@ -24,6 +24,14 @@ pub struct CsrfConfig {
     cookie_len: usize,
 }
 
+pub struct Fairing {
+    config: CsrfConfig,
+}
+
+pub struct CsrfToken(String);
+
+pub struct VerificationFailure;
+
 impl Default for CsrfConfig {
     fn default() -> Self {
         Self {
@@ -34,14 +42,6 @@ impl Default for CsrfConfig {
         }
     }
 }
-
-pub struct Fairing {
-    config: CsrfConfig,
-}
-
-pub struct CsrfToken(String);
-
-pub struct VerificationFailure;
 
 impl Fairing {
     pub fn new() -> Self {
