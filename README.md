@@ -38,7 +38,7 @@ use rocket_contrib::templates::Template;
 
 fn main() {
     rocket::ignite()
-        .attach(rocket_csrf::Fairing::new())
+        .attach(rocket_csrf::Fairing::default())
         .attach(Template::fairing())
         .mount("/", routes![new, create])
         .launch();
