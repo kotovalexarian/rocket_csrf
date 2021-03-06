@@ -1,11 +1,12 @@
 #![feature(decl_macro)]
 
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 
+use bcrypt::verify;
 use rand::RngCore;
 use rocket::http::Cookie;
 use rocket_csrf::CsrfToken;
-use bcrypt::verify;
 
 fn client() -> rocket::local::Client {
     rocket::local::Client::new(rocket()).unwrap()

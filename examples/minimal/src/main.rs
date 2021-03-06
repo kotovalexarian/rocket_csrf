@@ -1,10 +1,12 @@
 #![feature(decl_macro)]
 
-#[macro_use] extern crate rocket;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate rocket;
+#[macro_use]
+extern crate serde_derive;
 
-use rocket::response::{Flash, Redirect};
 use rocket::request::{FlashMessage, Form};
+use rocket::response::{Flash, Redirect};
 use rocket_contrib::templates::Template;
 use rocket_csrf::CsrfToken;
 
@@ -46,10 +48,7 @@ fn new(csrf_token: CsrfToken, flash: Option<FlashMessage>) -> Template {
 #[post("/comments", data = "<form>")]
 fn create(csrf_token: CsrfToken, form: Form<Comment>) -> Flash<Redirect> {
     if let Err(_) = csrf_token.verify(&form.authenticity_token) {
-        return Flash::error(
-            Redirect::to(uri!(new)),
-            "invalid authenticity token",
-        );
+        return Flash::error(Redirect::to(uri!(new)), "invalid authenticity token");
     }
 
     Flash::success(

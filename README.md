@@ -55,7 +55,7 @@ fn main() {
             rocket_csrf::CsrfConfig::default()
                 .with_cookie_name("foobar")
                 .with_cookie_len(64)
-                .with_lifetime(time::Duration::days(3))
+                .with_lifetime(time::Duration::days(3)),
         ))
         .attach(Template::fairing())
         .mount("/", routes![new, create])
