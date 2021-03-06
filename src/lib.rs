@@ -135,6 +135,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for CsrfToken {
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
         let config = request.guard::<State<CsrfConfig>>().unwrap();
+
         match request.valid_csrf_token_from_session(&config) {
             None => Outcome::Failure((Status::Forbidden, ())),
             Some(token) => Outcome::Success(Self(base64::encode(token))),
