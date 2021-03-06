@@ -45,6 +45,24 @@ fn main() {
 }
 ```
 
+You also can configure
+[fairing](https://rocket.rs/v0.4/guide/fairings/#fairings):
+
+```rust
+fn main() {
+    rocket::ignite()
+        .attach(rocket_csrf::Fairing::new(
+            rocket_csrf::CsrfConfig::default()
+                .with_cookie_name("foobar")
+                .with_cookie_len(64)
+                .with_lifetime(time::Duration::days(3))
+        ))
+        .attach(Template::fairing())
+        .mount("/", routes![new, create])
+        .launch();
+}
+```
+
 Add [guard](https://rocket.rs/v0.4/guide/requests/#request-guards) to any
 request where you want to have access to session's CSRF token (e.g. to include
 it in forms) or verify it (e.g. to validate form):
