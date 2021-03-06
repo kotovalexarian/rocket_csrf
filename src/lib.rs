@@ -45,9 +45,7 @@ pub struct VerificationFailure;
 
 impl Fairing {
     pub fn new() -> Self {
-        Self {
-            config: Default::default(),
-        }
+        Self { config: Default::default() }
     }
 
     /// Set CSRF lifetime (expiration time) for cookie.
