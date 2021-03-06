@@ -1,4 +1,4 @@
-use bcrypt::{hash, verify, DEFAULT_COST};
+use bcrypt::{hash, verify};
 use rand::{distributions::Standard, Rng};
 use rocket::{
     fairing::{Fairing as RocketFairing, Info, Kind},
@@ -8,6 +8,8 @@ use rocket::{
 };
 use std::borrow::Cow;
 use time::Duration;
+
+const BCRYPT_COST: u32 = 8;
 
 const _PARAM_NAME: &str = "authenticity_token";
 const _HEADER_NAME: &str = "X-CSRF-Token";
@@ -80,7 +82,7 @@ impl CsrfConfig {
 
 impl CsrfToken {
     pub fn authenticity_token(&self) -> String {
-        hash(&self.0, DEFAULT_COST).unwrap()
+        hash(&self.0, BCRYPT_COST).unwrap()
     }
 
     pub fn verify(&self, form_authenticity_token: &String) -> Result<(), VerificationFailure> {
