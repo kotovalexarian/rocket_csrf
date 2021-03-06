@@ -32,6 +32,12 @@ pub struct CsrfToken(String);
 
 pub struct VerificationFailure;
 
+impl Default for Fairing {
+    fn default() -> Self {
+        Self::new(CsrfConfig::default())
+    }
+}
+
 impl Default for CsrfConfig {
     fn default() -> Self {
         Self {
@@ -44,40 +50,30 @@ impl Default for CsrfConfig {
 }
 
 impl Fairing {
-    pub fn new() -> Self {
-        Self { config: Default::default() }
+    pub fn new(config: CsrfConfig) -> Self {
+        Self { config }
     }
+}
 
+impl CsrfConfig {
     /// Set CSRF lifetime (expiration time) for cookie.
     ///
-    /// Call on the fairing before passing it to `rocket.attach()`
     pub fn with_lifetime(mut self, time: Duration) -> Self {
-        self.config.lifespan = time;
+        self.lifespan = time;
         self
     }
 
     /// Set CSRF Cookie Name.
     ///
-    /// Call on the fairing before passing it to `rocket.attach()`
     pub fn with_cookie_name(mut self, name: impl Into<Cow<'static, str>>) -> Self {
-        self.config.cookie_name = name.into();
+        self.cookie_name = name.into();
         self
     }
 
     /// Set CSRF Cookie length, keep this above or equal to 16 in size.
     ///
-    /// Call on the fairing before passing it to `rocket.attach()`
     pub fn with_cookie_len(mut self, length: usize) -> Self {
-        let length = std::cmp::max(length, 16);
-        self.config.cookie_len = length;
-        self
-    }
-
-    /// Set CSRF Config from CsrfConfig
-    ///
-    /// Call on the fairing before passing it to `rocket.attach()`
-    pub fn with_config(mut self, config: CsrfConfig) -> Self {
-        self.config = config;
+        self.cookie_len = length;
         self
     }
 }

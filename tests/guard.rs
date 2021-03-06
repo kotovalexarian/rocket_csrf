@@ -13,7 +13,7 @@ fn client() -> rocket::local::Client {
 
 fn rocket() -> rocket::Rocket {
     rocket::ignite()
-        .attach(rocket_csrf::Fairing::new())
+        .attach(rocket_csrf::Fairing::default())
         .mount("/", routes![index])
 }
 
