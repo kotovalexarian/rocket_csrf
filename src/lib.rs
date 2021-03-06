@@ -108,6 +108,7 @@ impl RocketFairing for Fairing {
 
     fn on_request(&self, request: &mut Request, _: &Data) {
         let config = request.guard::<State<CsrfConfig>>().unwrap();
+
         if let Some(_) = request.valid_csrf_token_from_session(&config) {
             return;
         }
@@ -116,11 +117,10 @@ impl RocketFairing for Fairing {
             .sample_iter(Standard)
             .take(config.cookie_len)
             .collect();
+
         let encoded = base64::encode(&values[..]);
 
-        //This changed in the latest Rocket so it will be nicer when it is switched.
-        let mut now = time::now_utc();
-        now = now + config.lifespan;
+        let now = time::now_utc() + config.lifespan;
 
         request.cookies().add_private(
             Cookie::build(config.cookie_name.clone(), encoded)
