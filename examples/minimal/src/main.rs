@@ -22,7 +22,7 @@ struct Comment {
 
 fn main() {
     rocket::ignite()
-        .attach(rocket_csrf::Fairing::new())
+        .attach(rocket_csrf::Fairing::default())
         .attach(Template::fairing())
         .mount("/", routes![index, new, create])
         .launch();
