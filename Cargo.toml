@@ -15,6 +15,6 @@ publish = true
 [dependencies]
 base64 = { version = "0.13.0" }
 rand   = { version = "0.8.3" }
-rocket = { version = "0.4.6", features = ["private-cookies"] }
+rocket = { version = "0.4.5", features = ["private-cookies"] }
 time = "0.1.38"
 bcrypt = "0.9"
