@@ -120,11 +120,11 @@ impl RocketFairing for Fairing {
 
         let encoded = base64::encode(&values[..]);
 
-        let now = time::now_utc() + config.lifespan;
+        let expires = time::now_utc() + config.lifespan;
 
         request.cookies().add_private(
             Cookie::build(config.cookie_name.clone(), encoded)
-                .expires(now)
+                .expires(expires)
                 .finish(),
         );
     }
