@@ -1,5 +1,3 @@
-#![feature(decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
@@ -8,12 +6,12 @@ use rand::RngCore;
 use rocket::http::Cookie;
 use rocket_csrf::CsrfToken;
 
-fn client() -> rocket::local::Client {
-    rocket::local::Client::new(rocket()).unwrap()
+fn client() -> rocket::local::blocking::Client {
+    rocket::local::blocking::Client::tracked(rocket()).unwrap()
 }
 
-fn rocket() -> rocket::Rocket {
-    rocket::ignite()
+fn rocket() -> rocket::Rocket<rocket::Build> {
+    rocket::build()
         .attach(rocket_csrf::Fairing::default())
         .mount("/", routes![index])
 }
@@ -34,8 +32,6 @@ fn respond_with_valid_authenticity_token() {
         .get("/")
         .private_cookie(Cookie::new("csrf_token", encoded.to_string()))
         .dispatch()
-        .body()
-        .unwrap()
         .into_string()
         .unwrap();
 

@@ -1,14 +1,12 @@
-#![feature(decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
-fn client() -> rocket::local::Client {
-    rocket::local::Client::new(rocket()).unwrap()
+fn client() -> rocket::local::blocking::Client {
+    rocket::local::blocking::Client::tracked(rocket()).unwrap()
 }
 
-fn rocket() -> rocket::Rocket {
-    rocket::ignite()
+fn rocket() -> rocket::Rocket<rocket::Build> {
+    rocket::build()
         .attach(rocket_csrf::Fairing::default())
         .mount("/", routes![index])
 }

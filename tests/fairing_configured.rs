@@ -1,17 +1,15 @@
-#![feature(decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
 const COOKIE_NAME: &str = "foobar";
 const COOKIE_LEN: usize = 64;
 
-fn client() -> rocket::local::Client {
-    rocket::local::Client::new(rocket()).unwrap()
+fn client() -> rocket::local::blocking::Client {
+    rocket::local::blocking::Client::tracked(rocket()).unwrap()
 }
 
-fn rocket() -> rocket::Rocket {
-    rocket::ignite()
+fn rocket() -> rocket::Rocket<rocket::Build> {
+    rocket::build()
         .attach(rocket_csrf::Fairing::new(
             rocket_csrf::CsrfConfig::default()
                 .with_cookie_name(COOKIE_NAME)
