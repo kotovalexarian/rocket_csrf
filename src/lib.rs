@@ -8,7 +8,7 @@ use rocket::{
     time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt};
 
 const BCRYPT_COST: u32 = 8;
 
@@ -33,7 +33,16 @@ pub struct Fairing {
 
 pub struct CsrfToken(String);
 
+#[derive(Debug)]
 pub struct VerificationFailure;
+
+impl fmt::Display for VerificationFailure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "failed to verify CSRF token")
+    }
+}
+
+impl std::error::Error for VerificationFailure {}
 
 impl Default for Fairing {
     fn default() -> Self {
