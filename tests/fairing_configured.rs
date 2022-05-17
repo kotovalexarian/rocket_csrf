@@ -14,7 +14,7 @@ fn rocket() -> rocket::Rocket<rocket::Build> {
             rocket_csrf::CsrfConfig::default()
                 .with_cookie_name(COOKIE_NAME)
                 .with_cookie_len(COOKIE_LEN)
-                .with_lifetime(time::Duration::days(3)),
+                .with_lifetime(rocket::time::Duration::days(3)),
         ))
         .mount("/", routes![index])
 }

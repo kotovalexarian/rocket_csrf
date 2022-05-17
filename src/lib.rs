@@ -5,10 +5,10 @@ use rocket::{
     fairing::{self, Fairing as RocketFairing, Info, Kind},
     http::{Cookie, Status},
     request::{FromRequest, Outcome},
+    time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
 };
 use std::borrow::Cow;
-use time::{Duration, OffsetDateTime};
 
 const BCRYPT_COST: u32 = 8;
 
