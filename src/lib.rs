@@ -1,4 +1,4 @@
-use bcrypt::{hash, verify};
+use constant_time_eq::constant_time_eq;
 use rand::{distributions::Standard, Rng};
 use rocket::{
     async_trait,
@@ -9,8 +9,6 @@ use rocket::{
     Data, Request, Rocket, State,
 };
 use std::borrow::Cow;
-
-const BCRYPT_COST: u32 = 8;
 
 const _PARAM_NAME: &str = "authenticity_token";
 const _HEADER_NAME: &str = "X-CSRF-Token";
@@ -92,12 +90,13 @@ impl CsrfConfig {
 }
 
 impl CsrfToken {
-    pub fn authenticity_token(&self) -> String {
-        hash(&self.0, BCRYPT_COST).unwrap()
+    pub fn authenticity_token(self) -> String {
+        self.0
     }
 
     pub fn verify(&self, form_authenticity_token: &String) -> Result<(), VerificationFailure> {
-        if verify(&self.0, form_authenticity_token).unwrap_or(false) {
+        // Constant time equality check.
+        if constant_time_eq(&self.0.as_bytes(), form_authenticity_token.as_bytes()) {
             Ok(())
         } else {
             Err(VerificationFailure {})
