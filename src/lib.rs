@@ -155,13 +155,13 @@ impl<'r> FromRequest<'r> for CsrfToken {
 
         match request.valid_csrf_token_from_session(&config) {
             None => Outcome::Failure((Status::Forbidden, ())),
-            Some(token) => Outcome::Success(Self(base64::encode(token))),
+            Some(token) => Outcome::Success(Self(token)),
         }
     }
 }
 
 trait RequestCsrf {
-    fn valid_csrf_token_from_session(&self, config: &CsrfConfig) -> Option<Vec<u8>> {
+    fn valid_csrf_token_from_session(&self, config: &CsrfConfig) -> Option<String> {
         self.csrf_token_from_session(config).and_then(|raw| {
             if raw.len() >= config.cookie_len {
                 Some(raw)
@@ -171,16 +171,18 @@ trait RequestCsrf {
         })
     }
 
-    fn csrf_token_from_session(&self, config: &CsrfConfig) -> Option<Vec<u8>>;
+    fn csrf_token_from_session(&self, config: &CsrfConfig) -> Option<String>;
 }
 
 impl RequestCsrf for Request<'_> {
-    fn csrf_token_from_session(&self, config: &CsrfConfig) -> Option<Vec<u8>> {
-        if config.private_cookies {
-            base64::decode(self.cookies().get_private(&config.cookie_name)?.value()).ok()
+    fn csrf_token_from_session(&self, config: &CsrfConfig) -> Option<String> {
+        let token = if config.private_cookies {
+            self.cookies().get_private(&config.cookie_name)?.value().to_string()
         } else {
-            base64::decode(self.cookies().get(&config.cookie_name)?.value()).ok()
-        }
+            self.cookies().get(&config.cookie_name)?.value().to_string()
+        };
+
+        Some(token)
     }
 }
 
