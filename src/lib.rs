@@ -25,6 +25,8 @@ pub struct CsrfConfig {
     cookie_name: Cow<'static, str>,
     /// CSRF Token character length
     cookie_len: usize,
+    /// Whether to use private cookies
+    private_cookies: bool,
 }
 
 pub struct Fairing {
@@ -48,6 +50,7 @@ impl Default for CsrfConfig {
             lifespan: Duration::days(1),
             cookie_name: "csrf_token".into(),
             cookie_len: 32,
+            private_cookies: true,
         }
     }
 }
@@ -77,6 +80,13 @@ impl CsrfConfig {
     ///
     pub fn with_cookie_len(mut self, length: usize) -> Self {
         self.cookie_len = length;
+        self
+    }
+
+    /// Set whether CSRF Cookie is private.
+    ///
+    pub fn with_private_cookies(mut self, private: bool) -> Self {
+        self.private_cookies = private;
         self
     }
 }
@@ -124,11 +134,15 @@ impl RocketFairing for Fairing {
 
         let expires = OffsetDateTime::now_utc() + config.lifespan;
 
-        request.cookies().add_private(
-            Cookie::build(config.cookie_name.clone(), encoded)
-                .expires(expires)
-                .finish(),
-        );
+        let cookie = Cookie::build(config.cookie_name.clone(), encoded)
+                    .expires(expires)
+                    .finish();
+
+        if config.private_cookies {
+            request.cookies().add_private(cookie)
+        } else {
+            request.cookies().add(cookie)
+        }
     }
 }
 
@@ -162,8 +176,11 @@ trait RequestCsrf {
 
 impl RequestCsrf for Request<'_> {
     fn csrf_token_from_session(&self, config: &CsrfConfig) -> Option<Vec<u8>> {
-        self.cookies()
-            .get_private(&config.cookie_name)
-            .and_then(|cookie| base64::decode(cookie.value()).ok())
+        if config.private_cookies {
+            base64::decode(self.cookies().get_private(&config.cookie_name)?.value()).ok()
+        } else {
+            base64::decode(self.cookies().get(&config.cookie_name)?.value()).ok()
+        }
     }
 }
+
