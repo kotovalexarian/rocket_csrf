@@ -3,7 +3,7 @@ use rand::{distributions::Standard, Rng};
 use rocket::{
     async_trait,
     fairing::{self, Fairing as RocketFairing, Info, Kind},
-    http::{Cookie, Status},
+    http::{Cookie, Method, Status},
     request::{FromRequest, Outcome},
     time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
@@ -27,7 +27,15 @@ pub struct CsrfConfig {
     private_cookies: bool,
 }
 
+/// Fairing that sets the CSRF token cookie and checks that write requests properly provide the
+/// CSRF token via headers for AJAX requests or form data.
+#[derive(Default)]
 pub struct Fairing {
+    token_fairing: TokenFairing,
+}
+
+/// Fairing that sets the CSRF token cookie.
+pub struct TokenFairing {
     config: CsrfConfig,
 }
 
@@ -35,7 +43,7 @@ pub struct CsrfToken(String);
 
 pub struct VerificationFailure;
 
-impl Default for Fairing {
+impl Default for TokenFairing {
     fn default() -> Self {
         Self::new(CsrfConfig::default())
     }
@@ -53,7 +61,7 @@ impl Default for CsrfConfig {
     }
 }
 
-impl Fairing {
+impl TokenFairing {
     pub fn new(config: CsrfConfig) -> Self {
         Self { config }
     }
@@ -104,11 +112,46 @@ impl CsrfToken {
     }
 }
 
+fn is_write_request(request: &Request<'_>) -> bool {
+    let method = request.method();
+    [Method::Get, Method::Head, Method::Options, Method::Trace]
+        .iter().any(|m| &method == m)
+}
+
 #[async_trait]
 impl RocketFairing for Fairing {
     fn info(&self) -> Info {
         Info {
             name: "CSRF",
+            kind: Kind::Ignite | Kind::Request,
+        }
+    }
+
+    async fn on_ignite(&self, rocket: Rocket<rocket::Build>) -> fairing::Result {
+        self.token_fairing.on_ignite(rocket).await
+    }
+
+    async fn on_request(&self, request: &mut Request<'_>, data: &mut Data<'_>) {
+        // Set CSRF cookie.
+        self.token_fairing.on_request(request, data).await;
+
+        // Check if it's a write request.
+        if !is_write_request(request) {
+            return;
+        }
+
+        // TODO: 
+        // Check header if AJAX.
+        // Otherwise, check form data.
+        // Otherwise, fail.
+    }
+}
+
+#[async_trait]
+impl RocketFairing for TokenFairing {
+    fn info(&self) -> Info {
+        Info {
+            name: "CSRF Token",
             kind: Kind::Ignite | Kind::Request,
         }
     }
