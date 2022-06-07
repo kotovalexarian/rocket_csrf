@@ -3,17 +3,20 @@ use rand::{distributions::Standard, Rng};
 use rocket::{
     async_trait,
     fairing::{self, Fairing as RocketFairing, Info, Kind},
-    http::{Cookie, Method, Status},
+    http::{Cookie, Method, Status, uri},
     request::{FromRequest, Outcome},
+    route::{self, Handler},
     time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
 };
 use std::borrow::Cow;
 
+const COOKIE_NAME: &str = "csrf_token";
 const _PARAM_NAME: &str = "authenticity_token";
-const _HEADER_NAME: &str = "X-CSRF-Token";
+const HEADER_NAME: &str = "X-CSRF-Token";
 const _PARAM_META_NAME: &str = "csrf-param";
 const _TOKEN_META_NAME: &str = "csrf-token";
+const FORBIDDEN_ROUTE: &str = "/forbidden";
 
 #[derive(Debug, Clone)]
 pub struct CsrfConfig {
@@ -25,9 +28,13 @@ pub struct CsrfConfig {
     cookie_len: usize,
     /// Whether to use private cookies
     private_cookies: bool,
+    /// CSRF header name
+    header_name: Cow<'static, str>,
+    /// URI for forbidden handler
+    forbidden_uri: uri::Origin<'static>,
 }
 
-/// Fairing that sets the CSRF token cookie and checks that write requests properly provide the
+/// Fairing that sets the CSRF token cookie and verifies that write requests properly provide the
 /// CSRF token via headers for AJAX requests or form data.
 #[derive(Default)]
 pub struct Fairing {
@@ -54,9 +61,11 @@ impl Default for CsrfConfig {
         Self {
             /// Set to 6hour for default in Database Session stores.
             lifespan: Duration::days(1),
-            cookie_name: "csrf_token".into(),
+            cookie_name: COOKIE_NAME.into(),
             cookie_len: 32,
             private_cookies: true,
+            header_name: HEADER_NAME.into(),
+            forbidden_uri: uri::Origin::parse(FORBIDDEN_ROUTE).unwrap(),
         }
     }
 }
@@ -140,11 +149,43 @@ impl RocketFairing for Fairing {
             return;
         }
 
-        // TODO: 
-        // Check header if AJAX.
-        // Otherwise, check form data.
-        // Otherwise, fail.
+        // Verify the provided CSRF token.
+        // Return a forbidden status if it's invalid.
+        if !verify_csrf_token(&request).await {
+            redirect_forbidden(request).await;
+        }
     }
+}
+
+async fn verify_csrf_token(request: &Request<'_>) -> bool {
+    let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
+    // Get CSRF token from session cookie.
+    if let Some(expected_token) = request.valid_csrf_token_from_session(&config) {
+        // Get provided CSRF token from header or form data.
+        if let Some(provided_token) = get_csrf_from_header(&request, &config)
+                .or_else(|| get_csrf_from_form_data(&request, &config))
+        {
+            // Verify the provided token.
+            match expected_token.verify(&provided_token) {
+                Ok(()) => true,
+                Err(VerificationFailure{}) => false,
+            }
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+fn get_csrf_from_header(request: &Request<'_>, config: &CsrfConfig) -> Option<String> {
+    // Get provided CSRF token from header.
+    request.headers().get_one(&config.header_name).map(|t| t.to_string())
+}
+
+fn get_csrf_from_form_data(_request: &Request<'_>, _config: &CsrfConfig) -> Option<String> {
+    // TODO: Parse form data and extract CSRF token.
+    None
 }
 
 #[async_trait]
@@ -197,16 +238,16 @@ impl<'r> FromRequest<'r> for CsrfToken {
 
         match request.valid_csrf_token_from_session(&config) {
             None => Outcome::Failure((Status::Forbidden, ())),
-            Some(token) => Outcome::Success(Self(token)),
+            Some(token) => Outcome::Success(token),
         }
     }
 }
 
 trait RequestCsrf {
-    fn valid_csrf_token_from_session(&self, config: &CsrfConfig) -> Option<String> {
+    fn valid_csrf_token_from_session(&self, config: &CsrfConfig) -> Option<CsrfToken> {
         self.csrf_token_from_session(config).and_then(|raw| {
             if raw.len() >= config.cookie_len {
-                Some(raw)
+                Some(CsrfToken(raw))
             } else {
                 None
             }
@@ -228,3 +269,20 @@ impl RequestCsrf for Request<'_> {
     }
 }
 
+// Hack until [#749](https://github.com/SergioBenitez/Rocket/issues/749) is implemented.
+async fn redirect_forbidden(request: &mut Request<'_>) {
+    let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
+    let uri = config.forbidden_uri.clone();
+    request.set_uri(uri);
+    request.set_method(Method::Get);
+}
+
+#[derive(Clone)]
+struct ForbiddenHandler {}
+
+#[rocket::async_trait]
+impl Handler for ForbiddenHandler {
+    async fn handle<'a>(&self, _: &'a Request<'_>, _: Data<'a>) -> route::Outcome<'a> {
+        route::Outcome::Failure(Status::Forbidden)
+    }
+}
