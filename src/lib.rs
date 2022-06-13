@@ -5,7 +5,7 @@ use rocket::{
     fairing::{self, Fairing as RocketFairing, Info, Kind},
     http::{Cookie, Method, Status, uri},
     request::{FromRequest, Outcome},
-    route::{self, Handler},
+    route::{self, Handler, Route},
     time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
 };
@@ -137,7 +137,13 @@ impl RocketFairing for Fairing {
     }
 
     async fn on_ignite(&self, rocket: Rocket<rocket::Build>) -> fairing::Result {
-        self.token_fairing.on_ignite(rocket).await
+        // Set config.
+        let rocket = self.token_fairing.on_ignite(rocket).await?;
+
+        // Mount handle.
+        let rank = None; // TODO
+        let route = Route::ranked(rank, Method::Get, "/", ForbiddenHandler {});
+        Ok(rocket.mount(self.token_fairing.config.forbidden_uri.clone(), [route]))
     }
 
     async fn on_request(&self, request: &mut Request<'_>, data: &mut Data<'_>) {
