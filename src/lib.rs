@@ -123,7 +123,7 @@ impl CsrfToken {
 
 fn is_write_request(request: &Request<'_>) -> bool {
     let method = request.method();
-    [Method::Get, Method::Head, Method::Options, Method::Trace]
+    ![Method::Get, Method::Head, Method::Options, Method::Trace]
         .iter().any(|m| &method == m)
 }
 
