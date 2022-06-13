@@ -157,14 +157,14 @@ impl RocketFairing for Fairing {
 
         // Verify the provided CSRF token.
         // Return a forbidden status if it's invalid.
-        if !verify_csrf_token(&request).await {
-            redirect_forbidden(request).await;
+        let config = &self.token_fairing.config;
+        if !verify_csrf_token(&request, &config).await {
+            redirect_forbidden(request, &config).await;
         }
     }
 }
 
-async fn verify_csrf_token(request: &Request<'_>) -> bool {
-    let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
+async fn verify_csrf_token(request: &Request<'_>, config: &CsrfConfig) -> bool {
     // Get CSRF token from session cookie.
     if let Some(expected_token) = request.valid_csrf_token_from_session(&config) {
         // Get provided CSRF token from header or form data.
@@ -208,7 +208,7 @@ impl RocketFairing for TokenFairing {
     }
 
     async fn on_request(&self, request: &mut Request<'_>, _: &mut Data<'_>) {
-        let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
+        let config = &self.config;
 
         if let Some(_) = request.valid_csrf_token_from_session(&config) {
             return;
@@ -276,8 +276,7 @@ impl RequestCsrf for Request<'_> {
 }
 
 // Hack until [#749](https://github.com/SergioBenitez/Rocket/issues/749) is implemented.
-async fn redirect_forbidden(request: &mut Request<'_>) {
-    let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
+async fn redirect_forbidden(request: &mut Request<'_>, config: &CsrfConfig) {
     let uri = config.forbidden_uri.clone();
     request.set_uri(uri);
     request.set_method(Method::Get);
