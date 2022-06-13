@@ -41,6 +41,12 @@ pub struct Fairing {
     token_fairing: TokenFairing,
 }
 
+impl Fairing {
+    pub fn new(config: CsrfConfig) -> Self {
+        Self { token_fairing: TokenFairing::new(config) }
+    }
+}
+
 /// Fairing that sets the CSRF token cookie.
 pub struct TokenFairing {
     config: CsrfConfig,
@@ -102,6 +108,20 @@ impl CsrfConfig {
     ///
     pub fn with_private_cookies(mut self, private: bool) -> Self {
         self.private_cookies = private;
+        self
+    }
+
+    /// Set CSRF header name.
+    ///
+    pub fn with_header_name(mut self, header_name: impl Into<Cow<'static, str>>) -> Self {
+        self.header_name = header_name.into();
+        self
+    }
+
+    /// Set URI for forbidden handler
+    ///
+    pub fn with_forbidden_uri(mut self, forbidden_uri: uri::Origin<'static>) -> Self {
+        self.forbidden_uri = forbidden_uri;
         self
     }
 }
