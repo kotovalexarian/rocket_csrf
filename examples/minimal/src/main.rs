@@ -5,10 +5,11 @@ extern crate rocket;
 #[macro_use]
 extern crate serde_derive;
 
-use rocket::request::{FlashMessage, Form};
+use rocket::form::Form;
+use rocket::request::FlashMessage;
 use rocket::response::{Flash, Redirect};
-use rocket_contrib::templates::Template;
 use rocket_csrf::CsrfToken;
+use rocket_dyn_templates::Template;
 
 #[derive(Serialize)]
 struct TemplateContext {
@@ -22,12 +23,12 @@ struct Comment {
     text: String,
 }
 
-fn main() {
-    rocket::ignite()
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
         .attach(rocket_csrf::Fairing::default())
         .attach(Template::fairing())
         .mount("/", routes![index, new, create])
-        .launch();
 }
 
 #[get("/")]
@@ -39,7 +40,7 @@ fn index() -> Redirect {
 fn new(csrf_token: CsrfToken, flash: Option<FlashMessage>) -> Template {
     let template_context = TemplateContext {
         authenticity_token: csrf_token.authenticity_token().to_string(),
-        flash: flash.map(|msg| format!("{}! {}", msg.name(), msg.msg())),
+        flash: flash.map(|flash| flash.message().to_string()),
     };
 
     Template::render("comments/new", &template_context)
