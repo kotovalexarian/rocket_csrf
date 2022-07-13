@@ -25,7 +25,7 @@ Table of contents
 Usage
 -----
 
-Attach [fairing](https://rocket.rs/v0.4/guide/fairings/#fairings) to the Rocket
+Attach [fairing](https://rocket.rs/v0.5-rc/guide/fairings/#fairings) to the Rocket
 instance:
 
 ```rust
@@ -46,7 +46,7 @@ fn rocket() -> _ {
 ```
 
 You also can configure
-[fairing](https://rocket.rs/v0.4/guide/fairings/#fairings):
+[fairing](https://rocket.rs/v0.5-rc/guide/fairings/#fairings):
 
 ```rust
 #[launch]
@@ -63,7 +63,7 @@ fn rocket() -> _ {
 }
 ```
 
-Add [guard](https://rocket.rs/v0.4/guide/requests/#request-guards) to any
+Add [guard](https://rocket.rs/v0.5-rc/guide/requests/#request-guards) to any
 request where you want to have access to session's CSRF token (e.g. to include
 it in forms) or verify it (e.g. to validate form):
 
@@ -85,8 +85,8 @@ fn create(csrf_token: CsrfToken, form: Form<Comment>) -> Redirect {
 ```
 
 Get CSRF token from
-[guard](https://rocket.rs/v0.4/guide/requests/#request-guards)
-to use it in [templates](https://rocket.rs/v0.4/guide/responses/#templates):
+[guard](https://rocket.rs/v0.5-rc/guide/requests/#request-guards)
+to use it in [templates](https://rocket.rs/v0.5-rc/guide/responses/#templates):
 
 ```rust
 #[get("/comments/new")]
@@ -98,7 +98,7 @@ fn new(csrf_token: CsrfToken) -> Template {
 ```
 
 Add CSRF token to your HTML forms in
-[templates](https://rocket.rs/v0.4/guide/responses/#templates):
+[templates](https://rocket.rs/v0.5-rc/guide/responses/#templates):
 
 ```html
 <form method="post" action="/comments">
@@ -108,7 +108,7 @@ Add CSRF token to your HTML forms in
 ```
 
 Add attribute `authenticity_token` to your
-[forms](https://rocket.rs/v0.4/guide/requests/#forms):
+[forms](https://rocket.rs/v0.5-rc/guide/requests/#forms):
 
 ```rust
 #[derive(FromForm)]
@@ -118,7 +118,7 @@ struct Comment {
 }
 ```
 
-Validate [forms](https://rocket.rs/v0.4/guide/requests/#forms) to have valid
+Validate [forms](https://rocket.rs/v0.5-rc/guide/requests/#forms) to have valid
 authenticity token:
 
 ```rust
@@ -140,7 +140,7 @@ TODO
 ----
 
 * [ ] Add fairing to verify all requests as an option.
-* [ ] Add [data guard](https://api.rocket.rs/v0.4/rocket/data/trait.FromData.html) to verify forms with a guard.
+* [ ] Add [data guard](https://api.rocket.rs/v0.5-rc/rocket/data/trait.FromData.html) to verify forms with a guard.
 * [ ] Add helpers to render form field.
 * [ ] Add helpers to add HTML meta tags for Ajax with `X-CSRF-Token` header.
 * [ ] Verify `X-CSRF-Token` header.
