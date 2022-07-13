@@ -34,14 +34,14 @@ instance:
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate serde_derive;
 
-use rocket_contrib::templates::Template;
+use rocket_dyn_templates::Template;
 
-fn main() {
+#[launch]
+fn rocket() -> _ {
     rocket::ignite()
         .attach(rocket_csrf::Fairing::default())
         .attach(Template::fairing())
         .mount("/", routes![new, create])
-        .launch();
 }
 ```
 
@@ -49,7 +49,8 @@ You also can configure
 [fairing](https://rocket.rs/v0.4/guide/fairings/#fairings):
 
 ```rust
-fn main() {
+#[launch]
+fn rocket() -> _ {
     rocket::ignite()
         .attach(rocket_csrf::Fairing::new(
             rocket_csrf::CsrfConfig::default()
@@ -59,7 +60,6 @@ fn main() {
         ))
         .attach(Template::fairing())
         .mount("/", routes![new, create])
-        .launch();
 }
 ```
 
@@ -68,10 +68,10 @@ request where you want to have access to session's CSRF token (e.g. to include
 it in forms) or verify it (e.g. to validate form):
 
 ```rust
+use rocket::form::Form;
 use rocket::response::Redirect;
-use rocket::request::Form;
-use rocket_contrib::templates::Template;
 use rocket_csrf::CsrfToken;
+use rocket_dyn_templates::Template;
 
 #[get("/comments/new")]
 fn new(csrf_token: CsrfToken) -> Template {
