@@ -1,13 +1,14 @@
 use bcrypt::{hash, verify};
 use rand::{distributions::Standard, Rng};
 use rocket::{
-    fairing::{Fairing as RocketFairing, Info, Kind},
+    async_trait,
+    fairing::{self, Fairing as RocketFairing, Info, Kind},
     http::{Cookie, Status},
     request::{FromRequest, Outcome},
+    time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
 };
 use std::borrow::Cow;
-use time::Duration;
 
 const BCRYPT_COST: u32 = 8;
 
@@ -94,20 +95,21 @@ impl CsrfToken {
     }
 }
 
+#[async_trait]
 impl RocketFairing for Fairing {
     fn info(&self) -> Info {
         Info {
             name: "CSRF",
-            kind: Kind::Attach | Kind::Request,
+            kind: Kind::Ignite | Kind::Request,
         }
     }
 
-    fn on_attach(&self, rocket: Rocket) -> std::result::Result<Rocket, Rocket> {
+    async fn on_ignite(&self, rocket: Rocket<rocket::Build>) -> fairing::Result {
         Ok(rocket.manage(self.config.clone()))
     }
 
-    fn on_request(&self, request: &mut Request, _: &Data) {
-        let config = request.guard::<State<CsrfConfig>>().unwrap();
+    async fn on_request(&self, request: &mut Request<'_>, _: &mut Data<'_>) {
+        let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
 
         if let Some(_) = request.valid_csrf_token_from_session(&config) {
             return;
@@ -120,7 +122,7 @@ impl RocketFairing for Fairing {
 
         let encoded = base64::encode(&values[..]);
 
-        let expires = time::now_utc() + config.lifespan;
+        let expires = OffsetDateTime::now_utc() + config.lifespan;
 
         request.cookies().add_private(
             Cookie::build(config.cookie_name.clone(), encoded)
@@ -130,11 +132,12 @@ impl RocketFairing for Fairing {
     }
 }
 
-impl<'a, 'r> FromRequest<'a, 'r> for CsrfToken {
+#[async_trait]
+impl<'r> FromRequest<'r> for CsrfToken {
     type Error = ();
 
-    fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        let config = request.guard::<State<CsrfConfig>>().unwrap();
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let config = request.guard::<&State<CsrfConfig>>().await.unwrap();
 
         match request.valid_csrf_token_from_session(&config) {
             None => Outcome::Failure((Status::Forbidden, ())),

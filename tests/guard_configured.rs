@@ -1,5 +1,3 @@
-#![feature(decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
@@ -11,17 +9,17 @@ use rocket_csrf::CsrfToken;
 const COOKIE_NAME: &str = "foobar";
 const COOKIE_LEN: usize = 64;
 
-fn client() -> rocket::local::Client {
-    rocket::local::Client::new(rocket()).unwrap()
+fn client() -> rocket::local::blocking::Client {
+    rocket::local::blocking::Client::tracked(rocket()).unwrap()
 }
 
-fn rocket() -> rocket::Rocket {
-    rocket::ignite()
+fn rocket() -> rocket::Rocket<rocket::Build> {
+    rocket::build()
         .attach(rocket_csrf::Fairing::new(
             rocket_csrf::CsrfConfig::default()
                 .with_cookie_name(COOKIE_NAME)
                 .with_cookie_len(COOKIE_LEN)
-                .with_lifetime(time::Duration::days(3)),
+                .with_lifetime(rocket::time::Duration::days(3)),
         ))
         .mount("/", routes![index])
 }
@@ -42,8 +40,6 @@ fn respond_with_valid_authenticity_token() {
         .get("/")
         .private_cookie(Cookie::new(COOKIE_NAME, encoded.to_string()))
         .dispatch()
-        .body()
-        .unwrap()
         .into_string()
         .unwrap();
 
