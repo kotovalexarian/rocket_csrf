@@ -2,13 +2,17 @@ use bcrypt::{hash, verify};
 use rand::{distributions::Standard, Rng};
 use rocket::{
     async_trait,
+    data::FromData,
     fairing::{self, Fairing as RocketFairing, Info, Kind},
+    form::{Form, FromForm},
     http::{Cookie, Status},
     request::{FromRequest, Outcome},
     time::{Duration, OffsetDateTime},
     Data, Request, Rocket, State,
 };
 use std::borrow::Cow;
+
+pub mod form;
 
 const BCRYPT_COST: u32 = 8;
 
@@ -86,7 +90,7 @@ impl CsrfToken {
         hash(&self.0, BCRYPT_COST).unwrap()
     }
 
-    pub fn verify(&self, form_authenticity_token: &String) -> Result<(), VerificationFailure> {
+    pub fn verify(&self, form_authenticity_token: &str) -> Result<(), VerificationFailure> {
         if verify(&self.0, form_authenticity_token).unwrap_or(false) {
             Ok(())
         } else {
