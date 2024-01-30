@@ -78,15 +78,29 @@ impl<'r, T: FromForm<'r>> FromData<'r> for CsrfForm<T> {
             Failure((s, _e)) => return Outcome::Failure((s, CsrfError::CSRFTokenInvalid)),
             Forward(()) => return Outcome::Forward(d),
         };
-        let form: Form<CsrfTokenForm<T>> = match Form::from_data(r, d).await {
-            Success(t) => t,
-            Failure((s, e)) => return Outcome::Failure((s, CsrfError::Other(e))),
-            Forward(d) => return Outcome::Forward(d),
-        };
-        if token.verify(form.token).is_ok() {
-            Outcome::Success(Self(form.into_inner().inner))
+        // Bypass token in form fields if header is set
+        if let Some(header) = r.headers().get_one("X-CSRF-Token") {
+            if token.verify(header).is_ok() {
+                let form: Form<T> = match Form::from_data(r, d).await {
+                    Success(t) => t,
+                    Failure((s, e)) => return Outcome::Failure((s, CsrfError::Other(e))),
+                    Forward(d) => return Outcome::Forward(d),
+                };
+                Outcome::Success(Self(form.into_inner()))
+            } else {
+                Outcome::Failure((Status::NotAcceptable, CsrfError::CSRFTokenInvalid))
+            }
         } else {
-            Outcome::Failure((Status::NotAcceptable, CsrfError::CSRFTokenInvalid))
+            let form: Form<CsrfTokenForm<T>> = match Form::from_data(r, d).await {
+                Success(t) => t,
+                Failure((s, e)) => return Outcome::Failure((s, CsrfError::Other(e))),
+                Forward(d) => return Outcome::Forward(d),
+            };
+            if token.verify(form.token).is_ok() {
+                Outcome::Success(Self(form.into_inner().inner))
+            } else {
+                Outcome::Failure((Status::NotAcceptable, CsrfError::CSRFTokenInvalid))
+            }
         }
     }
 }

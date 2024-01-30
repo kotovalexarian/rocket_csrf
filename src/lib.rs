@@ -7,8 +7,9 @@ use rocket::{
     form::{Form, FromForm},
     http::{Cookie, Status},
     request::{FromRequest, Outcome},
+    sentinel::resolution::DefaultSentinel,
     time::{Duration, OffsetDateTime},
-    Data, Request, Rocket, State,
+    Data, Request, Rocket, Sentinel, State,
 };
 use std::borrow::Cow;
 
@@ -147,6 +148,14 @@ impl<'r> FromRequest<'r> for CsrfToken {
             None => Outcome::Failure((Status::Forbidden, ())),
             Some(token) => Outcome::Success(Self(base64::encode(token))),
         }
+    }
+}
+
+// Implement Sentinel for CsrfToken to require CsrfConfig to be attached
+impl Sentinel for CsrfToken {
+    fn abort(rocket: &Rocket<rocket::Ignite>) -> bool {
+        // Delegate to `&State<CsrfConfig>`
+        State::<CsrfConfig>::abort(rocket)
     }
 }
 
